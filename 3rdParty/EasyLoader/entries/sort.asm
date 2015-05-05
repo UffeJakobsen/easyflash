@@ -1,12 +1,12 @@
 .print ">sort.asm"
 
 F_SORT:{
-	
+
 	.var ZP_RETRY = P_BINBCD_OUT+0
 	.var ZP_TODO = P_BINBCD_OUT+1
 	.var ZP_COUNT = P_BINBCD_OUT+2
 	.var ZP_NEXT_ENTRY = P_BINBCD_IN
-	
+
 	// init
 	lda P_NUM_DIR_ENTRIES
 	beq return // no files!
@@ -18,20 +18,20 @@ big_loop:
 	eor #$80
 	sta P_LED_STATE
 	sta $de02
-	
+
 	// do not sort again
-	:mov #1 ; ZP_RETRY
-	
-	:mov ZP_COUNT ; ZP_TODO
-	
-	:mov16 #P_DIR ; ZP_NEXT_ENTRY
+	:mov #1 : ZP_RETRY
+
+	:mov ZP_COUNT : ZP_TODO
+
+	:mov16 #P_DIR : ZP_NEXT_ENTRY
 loop_entry:
 	dec ZP_TODO
 	beq again
 
-	:mov16 ZP_NEXT_ENTRY ; ZP_ENTRY
-	:add16_8 ZP_NEXT_ENTRY ; #V_DIR_SIZE
-	
+	:mov16 ZP_NEXT_ENTRY : ZP_ENTRY
+	:add16_8 ZP_NEXT_ENTRY : #V_DIR_SIZE
+
 	ldy #O_DIR_UNAME-1
 loop_char:
 	iny
@@ -54,8 +54,8 @@ swap_entries:
 	sta (ZP_NEXT_ENTRY),y
 	dey
 	bpl !loop-
-	
-	:mov #0 ; ZP_RETRY
+
+	:mov #0 : ZP_RETRY
 	jmp loop_entry
 
 again:

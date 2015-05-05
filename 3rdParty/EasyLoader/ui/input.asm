@@ -5,11 +5,11 @@ F_GETIN:{
 	beq is_shift
 
 	// no shift
-	:mov16 #tab1 ; ZP_INPUT_KEYTABLE
+	:mov16 #tab1 : ZP_INPUT_KEYTABLE
 	bne !skip+
 	// whith shift
 is_shift:
-	:mov16 #tab2 ; ZP_INPUT_KEYTABLE
+	:mov16 #tab2 : ZP_INPUT_KEYTABLE
 !skip:
 
 	// go trough rows
@@ -58,7 +58,7 @@ a_char:
 	!skip2:
 		cmp ZP_INPUT_KEYTABLE
 		bne F_GETIN // if shift state is different: just restart
-	
+
 	lda (ZP_INPUT_KEYTABLE), y
 	beq doch_nicht_a_char_l
 	rts
@@ -68,14 +68,14 @@ doch_nicht_a_char_l:
 	bne doch_nicht_a_char
 
 get_shift:
-	:mov #$bf ; $dc00
+	:mov #$bf : $dc00
 !loop:
 	lda $dc01
 	cmp $dc01
 	bne !loop-
 	and #$10
 	beq !is_shift+
-	:mov #$fd ; $dc00
+	:mov #$fd : $dc00
 !loop:
 	lda $dc01
 	cmp $dc01
@@ -132,14 +132,14 @@ tab2:
 
 F_INPUT_INIT:{
 		// init
-		:mov #0 ; ZP_INPUT_LAST_CHAR
+		:mov #0 : ZP_INPUT_LAST_CHAR
 
 		// init CIA1-data direction
 		ldx #$ff
 		stx $dc02
 		inx
 		stx $dc03
-		
+
 		// alles in CIA2
 		// timer A stoppen
 		lda #%11000000
@@ -158,7 +158,7 @@ F_INPUT_INIT:{
 		lda #%11000001
 		sta $dd0e
 
-		
+
 		rts
 }
 
@@ -214,11 +214,11 @@ F_INPUT_GETKEY:{
 
 	// process the key
 	beq no_char
-	
+
 	// a key is pressed
 	cmp ZP_INPUT_LAST_CHAR
 	bne use_key // key is different to the last, get it
-	
+
 	lda $dd0f
 	and #$01
 	bne show_no_char // time is not yet done -> no key
@@ -227,7 +227,7 @@ F_INPUT_GETKEY:{
 	lda #48
 	jsr set_timer
 	jmp return_char
-	
+
 use_key:
 	sta ZP_INPUT_LAST_CHAR
 	lda #200

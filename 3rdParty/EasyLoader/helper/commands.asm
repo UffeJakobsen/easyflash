@@ -20,23 +20,23 @@
 .enum {
 	// default (for hop)
 	_DEFAULT = CmdArgument(AT_NONE, _noneid++),
-	
+
 	// 8bit registers
 	A = CmdArgument(AT_NONE, _noneid++),
 	X = CmdArgument(AT_NONE, _noneid++),
 	Y = CmdArgument(AT_NONE, _noneid++),
-	
+
 	// 16bit registers
 	XY = CmdArgument(AT_NONE, _noneid++),
-	
+
 	// self modifying code
 	SMC = CmdArgument(AT_NONE, _noneid++),
 
-	// mode:J	
+	// mode:J
 	JMP = CmdArgument(AT_NONE, _noneid++),
 	JSR = CmdArgument(AT_NONE, _noneid++),
 	BRANCH = CmdArgument(AT_NONE, _noneid++),
-	
+
 	// comparators
 	EQ = CmdArgument(AT_NONE, _noneid++),
 	NE = CmdArgument(AT_NONE, _noneid++),
@@ -46,7 +46,7 @@
 	GT = CmdArgument(AT_NONE, _noneid++),
 	Lx = CmdArgument(AT_NONE, _noneid++),
 	Gx = CmdArgument(AT_NONE, _noneid++),
-	
+
 	// not / skip
 	NOT = CmdArgument(AT_NONE, _noneid++),
 	ELSE = CmdArgument(AT_NONE, _noneid),  // dont inc, it's same as SKIP
@@ -106,7 +106,7 @@
 	.return _isregister8(r1) && _isregister8(r2) && r1.getValue() == r2.getValue()
 }
 
-.pseudocommand _load reg ; arg {
+.pseudocommand _load reg : arg {
 	.if(_equalregisters8(reg, A)){
 		lda arg
 	}else .if(_equalregisters8(reg, X)){
@@ -118,7 +118,7 @@
 	}
 }
 
-.pseudocommand _store reg ; arg {
+.pseudocommand _store reg : arg {
 	.if(_equalregisters8(reg, A)){
 		sta arg
 	}else .if(_equalregisters8(reg, X)){
@@ -130,7 +130,7 @@
 	}
 }
 
-.pseudocommand _compare reg ; arg {
+.pseudocommand _compare reg : arg {
 	.if(_equalregisters8(reg, A)){
 		cmp arg
 	}else .if(_equalregisters8(reg, X)){
@@ -154,7 +154,7 @@
 	.return _isregister16(r1) && _isregister16(r2) && r1.getValue() == r2.getValue()
 }
 
-.function _16bit_lowerArgument(arg) { 
+.function _16bit_lowerArgument(arg) {
 	.if (arg.getType() == AT_IMMEDIATE){
 		.return CmdArgument(arg.getType(), <arg.getValue())
 	}else .if(_equalregisters16(arg, XY)){
@@ -162,9 +162,9 @@
 	}else{
 		.return arg
 	}
-} 
+}
 
-.function _16bit_upperArgument(arg) { 
+.function _16bit_upperArgument(arg) {
 	.if (arg.getType() == AT_IMMEDIATE){
 		.return CmdArgument(arg.getType(), >arg.getValue())
 	}else .if(_equalregisters16(arg, XY)){
@@ -172,29 +172,29 @@
 	}else{
 		.return CmdArgument(arg.getType(), arg.getValue()+1)
 	}
-} 
+}
 
 /*
 ** 24bit
 */
 
-.function _24bit_lowerArgument(arg) { 
+.function _24bit_lowerArgument(arg) {
 		.return arg
-} 
+}
 
-.function _24bit_middleArgument(arg) { 
+.function _24bit_middleArgument(arg) {
 		.return CmdArgument(arg.getType(), arg.getValue()+1)
-} 
+}
 
-.function _24bit_upperArgument(arg) { 
+.function _24bit_upperArgument(arg) {
 		.return CmdArgument(arg.getType(), arg.getValue()+2)
-} 
+}
 
 /*
 ** branching
 */
 
-.pseudocommand _beq mode ; pc {
+.pseudocommand _beq mode : pc {
 	.if(_isBRANCH(mode)){
 			beq pc
 	}else .if(_isJMP(mode)){
@@ -210,7 +210,7 @@
 	}
 }
 
-.pseudocommand _bne mode ; pc {
+.pseudocommand _bne mode : pc {
 	.if(_isBRANCH(mode)){
 			bne pc
 	}else .if(_isJMP(mode)){
@@ -226,7 +226,7 @@
 	}
 }
 
-.pseudocommand _bcc mode ; pc {
+.pseudocommand _bcc mode : pc {
 	.if(_isBRANCH(mode)){
 			bcc pc
 	}else .if(_isJMP(mode)){
@@ -242,7 +242,7 @@
 	}
 }
 
-.pseudocommand _bcs mode ; pc {
+.pseudocommand _bcs mode : pc {
 	.if(_isBRANCH(mode)){
 			bcs pc
 	}else .if(_isJMP(mode)){
@@ -270,53 +270,53 @@
 	.return _iscomparator(c1) && _iscomparator(c2) && c1.getValue() == c2.getValue()
 }
 
-.pseudocommand _eq hop ; arg1 ; arg2 ; mode ; pc {
+.pseudocommand _eq hop : arg1 : arg2 : mode : pc {
 	.if(_isregister8(arg1)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
-		:_compare arg1 ; arg2
+		:_compare arg1 : arg2
 	}else .if(_isregister8(arg2)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
-		:_compare arg2 ; arg1
+		:_compare arg2 : arg1
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
-		:_load hop ; arg1
+		:_load hop : arg1
 		.if(arg2.getType() != AT_IMMEDIATE || arg2.getValue() != 0){
-			:_compare hop ; arg2
+			:_compare hop : arg2
 		}
 	}
-	:_beq mode ; pc
+	:_beq mode : pc
 }
 
-.pseudocommand _ne hop ; arg1 ; arg2 ; mode ; pc {
+.pseudocommand _ne hop : arg1 : arg2 : mode : pc {
 	.if(_isregister8(arg1)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
-		:_compare arg1 ; arg2
+		:_compare arg1 : arg2
 	}else .if(_isregister8(arg2)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
-		:_compare arg2 ; arg1
+		:_compare arg2 : arg1
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
-		:_load hop ; arg1
+		:_load hop : arg1
 		.if(arg2.getType() != AT_IMMEDIATE || arg2.getValue() != 0){
-			:_compare hop ; arg2
+			:_compare hop : arg2
 		}
 	}
-	:_bne mode ; pc
+	:_bne mode : pc
 }
 
-.pseudocommand _le hop ; arg1 ; arg2 ; mode ; pc {
+.pseudocommand _le hop : arg1 : arg2 : mode : pc {
 	.if(_isregister8(arg1)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
@@ -326,83 +326,83 @@
 				.error "if: R <= 255 is always true"
 			}else{
 				// R <= M  ->  R < M+1
-				:_compare arg1 ; # arg2.getValue()+1
-				:_bcc mode ; pc
+				:_compare arg1 : # arg2.getValue()+1
+				:_bcc mode : pc
 			}
 		}else{
-			:_compare arg1 ; arg2
-			:_beq mode ; pc
-			:_bcc mode ; pc
+			:_compare arg1 : arg2
+			:_beq mode : pc
+			:_bcc mode : pc
 		}
 	}else .if(_isregister8(arg2)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
 		// M <= R   ->   R >= M
-		:_compare arg2 ; arg1
-		:_bcs mode ; pc
+		:_compare arg2 : arg1
+		:_bcs mode : pc
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
 		// M <= N   ->   N >= M
-		:_load hop ; arg2
-		:_compare hop ; arg1
-		:_bcs mode ; pc
+		:_load hop : arg2
+		:_compare hop : arg1
+		:_bcs mode : pc
 	}
 }
 
-.pseudocommand _lt hop ; arg1 ; arg2 ; mode ; pc {
+.pseudocommand _lt hop : arg1 : arg2 : mode : pc {
 	.if(_isregister8(arg1)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
 		// R < M
-		:_compare arg1 ; arg2
-		:_bcc mode ; pc
+		:_compare arg1 : arg2
+		:_bcc mode : pc
 	}else .if(_isregister8(arg2)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
 		// M < R  ->  R > M
-		:_gt arg2 ; arg1 ; pc
+		:_gt arg2 : arg1 : pc
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
 		// M < N
-		:_load hop ; arg1
-		:_compare hop ; arg2
-		:_bcc mode ; pc
+		:_load hop : arg1
+		:_compare hop : arg2
+		:_bcc mode : pc
 	}
 }
 
-.pseudocommand _ge hop ; arg1 ; arg2 ; mode ; pc {
+.pseudocommand _ge hop : arg1 : arg2 : mode : pc {
 	.if(_isregister8(arg1)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
 		// R >= M
-		:_compare arg1 ; arg2
-		:_bcs mode ; pc
+		:_compare arg1 : arg2
+		:_bcs mode : pc
 	}else .if(_isregister8(arg2)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
 		// M >= R  ->  R <= M
-		:_le arg2 ; arg1 ; pc
+		:_le arg2 : arg1 : pc
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
 		// M >= N
-		:_load hop ; arg1
-		:_compare hop ; arg2
-		:_bcs mode ; pc
+		:_load hop : arg1
+		:_compare hop : arg2
+		:_bcs mode : pc
 	}
 }
 
-.pseudocommand _gt hop ; arg1 ; arg2 ; mode ; pc {
+.pseudocommand _gt hop : arg1 : arg2 : mode : pc {
 	.if(_isregister8(arg1)){
 		.if(!_isdefault(hop)){
 			.error "if: if at least one of the args is a register, hop must be not set"
@@ -412,13 +412,13 @@
 				.error "if: R > 255 is always false"
 			}else{
 				// R > M  ->  R >= M+1
-				:_compare arg1 ; # arg2.getValue()+1
-				:_bcs mode ; pc
+				:_compare arg1 : # arg2.getValue()+1
+				:_bcs mode : pc
 			}
 		}else{
-				:_compare arg1 ; arg2
+				:_compare arg1 : arg2
 				beq skip
-				:_bcs mode ; pc
+				:_bcs mode : pc
 			skip:
 		}
 	}else .if(_isregister8(arg2)){
@@ -426,16 +426,16 @@
 			.error "if: if at least one of the args is a register, hop must be not set"
 		}
 		// M > R   ->   R < M
-		:_compare arg2 ; arg1
-		:_bcc mode ; pc
+		:_compare arg2 : arg1
+		:_bcc mode : pc
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
 		// M > N   ->   N < M
-		:_load hop ; arg2
-		:_compare hop ; arg1
-		:_bcc mode ; pc
+		:_load hop : arg2
+		:_compare hop : arg1
+		:_bcc mode : pc
 	}
 }
 

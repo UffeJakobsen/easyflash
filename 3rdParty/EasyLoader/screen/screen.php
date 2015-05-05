@@ -37,7 +37,7 @@ HERE;
 $help = <<<HERE
  To navigate
  use key/joy
- up or down 
+ up or down
  or<■F■5=■F■7>
 
  Scroll page
@@ -166,7 +166,7 @@ $chars = array(
 
   '╭' => 159,
   '╮' => 137,
-  
+
   '<' => 158,
   '>' => 30,
   '=' => 0xe0,
@@ -177,21 +177,25 @@ foreach($chars AS $k => $v){
 }
 
 $t = strtr($t, $chars);
-$t = preg_replace('!■(.)!e', 'chr(0x80 + ord("\1"))', $t);
+#$t = preg_replace('!■(.)!e', 'chr(0x80 + ord("\1"))', $t);
+$t = preg_replace_callback('!■(.)!', function($m) { return chr(0x80 + ord($m[1])); }, $t);
 $t = explode("\n", $t);
 
 $help = strtr($help, $chars);
-$help = preg_replace('!■(.)!e', 'chr(0x80 + ord("\1"))', $help);
+#$help = preg_replace('!■(.)!e', 'chr(0x80 + ord("\1"))', $help);
+$help = preg_replace_callback('!■(.)!', function($m) { return chr(0x80 + ord($m[1])); }, $help);
 $help = explode("\n", $help);
 
 $msg = strtr($msg, $chars);
-$msg = preg_replace('!■(.)!e', 'chr(0x80 + ord("\1"))', $msg);
+#$msg = preg_replace('!■(.)!e', 'chr(0x80 + ord("\1"))', $msg);
+$msg = preg_replace_callback('!■(.)!', function($m) { return chr(0x80 + ord($m[1])); }, $msg);
 $msg = explode("\n", $msg);
 
 foreach($help AS $k=>$v){
 	$kk = $k + 7;
 	$t[$kk] = substr($t[$kk], 0, 26).str_pad($v, 13, ' ').substr($t[$kk], -1);
 }
+
 
 foreach($msg AS $k=>$v){
 	$kk = $k + 10;
@@ -209,6 +213,7 @@ foreach(array(
 		$t[$o1/40][$o1 % 40 + $o2] = chr($val);
 	}
 }
+
 
 $screen = repair_case(implode('', $t));
 

@@ -140,7 +140,11 @@ void EasyTransferMainFrame::OnButton(wxCommandEvent& event)
         pWindow = m_pNotebook->GetCurrentPage();
         if (pWindow)
         {
-            pWindow->AddPendingEvent(event);
+            //pWindow->AddPendingEvent(event);
+            wxEvtHandler* pEvtHandler = pWindow->GetEventHandler();
+            if (pEvtHandler) {
+                pEvtHandler->AddPendingEvent(event);
+            }
         }
     }
     else if (event.GetEventObject() == m_pButtonQuit)
@@ -224,4 +228,3 @@ void EasyTransferMainFrame::DoIt()
         m_pWorkerThread->Run();
     }
 }
-

@@ -18,11 +18,11 @@
 */
 
 .macro CharSet(file){
-	.var charset = LoadPicture(file, List().add($ffffff, $000000)) 
-	.for (var y=0; y<8; y++) 
-		.for (var x=0;x<32; x++) 
-			.for(var charPosY=0; charPosY<8; charPosY++) 
-				.byte charset.getSinglecolorByte(x,charPosY+y*8) 
+	.var charset = LoadPicture(file, List().add($ffffff, $000000))
+	.for (var y=0; y<8; y++)
+		.for (var x=0;x<32; x++)
+			.for(var charPosY=0; charPosY<8; charPosY++)
+				.byte charset.getSinglecolorByte(x,charPosY+y*8)
 }
 
 
@@ -96,11 +96,11 @@
 
 .macro UseHidden(){
 		sei
-		:mov #$31 ; $01 // only I/O
+		:mov #$31 : $01 // only I/O
 }
 
 .macro UseKernal(){
-		:mov #$36 ; $01 // only I/O + KERNAL
+		:mov #$36 : $01 // only I/O + KERNAL
 		cli
 }
 

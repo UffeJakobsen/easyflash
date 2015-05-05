@@ -48,7 +48,7 @@ $mod256k = array();
 $more_xbank = array();
 $is_hidden = array();
 
-foreach(split("[\r\n]+", file_get_contents($argv[2])) AS $ln){
+foreach(preg_split("[\r\n]", file_get_contents($argv[2])) AS $ln){
 	if(trim($ln) == '' || substr(trim($ln), 0, 1) == '#'){
 		// empty line or comment -> skip line
 		continue;
@@ -223,25 +223,25 @@ usort($dir_prg8, 'sort_dirs_prg');
 /*
   CartridgeHeader
 
-  Byte CartrigeMagic[16];   $00 - $0F 
-  Long HeaderSize;          $10 - $13 
-  Word Version;             $14 - $15 
-  Word HardwareType;        $16 - $17 
-  Byte ExROM_Line           $18 
-  Byte Game_Line            $19 
-  Byte Unused[6];           $1A - $1F 
-  Byte CartridgeName[32];   $20 - $3F 
+  Byte CartrigeMagic[16];   $00 - $0F
+  Long HeaderSize;          $10 - $13
+  Word Version;             $14 - $15
+  Word HardwareType;        $16 - $17
+  Byte ExROM_Line           $18
+  Byte Game_Line            $19
+  Byte Unused[6];           $1A - $1F
+  Byte CartridgeName[32];   $20 - $3F
 */
 /*
   ChipPacket
 
-  Byte ChipMagic[4];   0x00 - 0x03 
-  Long PacketLength;   0x04 - 0x07 
-  Word ChipType;       0x08 - 0x09 
-  Word Bank;           0x0A - 0x0B 
-  Word Address;        0x0C - 0x0D 
-  Word Length;         0x0E - 0x0F 
-  Byte Data[Length];   0x10 - ...  
+  Byte ChipMagic[4];   0x00 - 0x03
+  Long PacketLength;   0x04 - 0x07
+  Word ChipType;       0x08 - 0x09
+  Word Bank;           0x0A - 0x0B
+  Word Address;        0x0C - 0x0D
+  Word Length;         0x0E - 0x0F
+  Byte Data[Length];   0x10 - ...
 */
 
 echo 'C64 CARTRIDGE   ';
@@ -709,18 +709,18 @@ function sort_dir($a, $b){
 
 function read_xbank_file($file){
 	$f = fopen($file, 'rb');
-	
+
 	$crt_head = fread($f, 64);
 	if(substr($crt_head, 0, 16) != 'C64 CARTRIDGE   ' || ord($crt_head[0x16]) != 0 || ord($crt_head[0x17]) != 33){
 		// quick check for a crt failed
 		fail('check 1');
 		return false;
 	}
-	
+
 	$banks = array(array(), array());
 	$max_bank = 0;
 	$has_low = $has_high = false;
-	
+
 	while(!feof($f)){
 		$chip_head = fread($f, 16);
 		if($chip_head == ''){
@@ -729,7 +729,7 @@ function read_xbank_file($file){
 		if(substr($chip_head, 0, 4) != 'CHIP'){
 			return false;
 		}
-		
+
 		if(ord($chip_head[0xe]) == 0x20){
 			if(ord($chip_head[0xc]) == 0x80){
 				$banks[0][ord($chip_head[0xb])] = fread($f, 0x2000);
@@ -745,9 +745,9 @@ function read_xbank_file($file){
 		}
 		$max_bank = max($max_bank, ord($chip_head[0xb]));
 	}
-	
+
 	// extract mode (type of crt whithin this script)
-	
+
 	if($has_low && $has_high){
 		// 16k bank width
 		$mode = '16k';
@@ -764,9 +764,9 @@ function read_xbank_file($file){
 		$minI = 1;
 		$maxI = 1;
 	}
-	
+
 	// extract type of the module
-	
+
 	if(ord($crt_head[0x18])){
 		if($has_low){
 			$type = 0x12; // m16k
@@ -785,7 +785,7 @@ function read_xbank_file($file){
 			$data[] = str_pad($banks[$i][$b], 0x2000, chr(0xff));
 		}
 	}
-	
+
 	return array('data' => $data, 'mode' => $mode, 'type' => $type);
 }
 

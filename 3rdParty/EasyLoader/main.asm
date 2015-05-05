@@ -61,15 +61,15 @@
 
 .pc = * "Start"
 F_START:
-	
+
 	// init basics!!
 	sei
 	ldx #$ff
 	txs
 	cld
 	stx $8004 // no CBM80
-	:mov #$e7 ; $01
-	:mov #$2f ; $00
+	:mov #$e7 : $01
+	:mov #$2f : $00
 
 	// check for /^boot(.crt)?$/
 	jsr F_LAST_CONFIG_READ
@@ -112,15 +112,15 @@ F_START:
 
 	jsr F_INIT_COLORS
 
-	:mov #$9b ; $d011
-	:mov #$ff ; $d015
+	:mov #$9b : $d011
+	:mov #$ff : $d015
 
-	:mov #MODE_16k ; P_LED_STATE
-	
+	:mov #MODE_16k : P_LED_STATE
+
 	jsr F_SCAN_DIR
 	jsr F_SORT
 	jsr F_SEARCH_INIT
-	
+
 	jsr F_CLEAR_COLORS
 
 	jsr F_DRAW
@@ -136,7 +136,7 @@ ini_d000:
 	// sprite data
 	.const left_pos = $e9
 	.const top_pos = $40
-	
+
 	.byte left_pos+0*24, top_pos, left_pos+1*24, top_pos, left_pos+2*24, top_pos, left_pos+3*24, top_pos
 	.byte left_pos+5*8, top_pos, left_pos+5*8, top_pos, left_pos+5*8-4, top_pos+20*8, left_pos+5*8-4, top_pos+20*8
 

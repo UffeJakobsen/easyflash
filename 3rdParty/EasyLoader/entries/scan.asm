@@ -4,27 +4,27 @@ F_SCAN_DIR:{
 
 	.var FILESYSTEM_START_ADDR = $a000
 
-	.if(EASYLOADER_BANK != EASYFILESYSTEM_BANK){
+	//.if(EASYLOADER_BANK != EASYFILESYSTEM_BANK){
 		.eval FILESYSTEM_START_ADDR = $6800
 
 		// copy read-addr routine to $df00
-		:copy_to_df00 COPY_FILESYSTEM_START ; COPY_FILESYSTEM_END - COPY_FILESYSTEM_START
+		:copy_to_df00 COPY_FILESYSTEM_START : COPY_FILESYSTEM_END - COPY_FILESYSTEM_START
 
 		// copy the directory
 		jsr F_COPY_FILESYSTEM
-	}
+	//}
 
 	// copy read-addr routine to $df00
-	:copy_to_df00 READ_LOADADDR_START ; READ_LOADADDR_END - READ_LOADADDR_START
+	:copy_to_df00 READ_LOADADDR_START : READ_LOADADDR_END - READ_LOADADDR_START
 
-	:mov16 #[FILESYSTEM_START_ADDR - V_EFS_SIZE] ; ZP_EFS_ENTRY
-	:mov16 #P_DIR ; ZP_ENTRY
-	:mov #0 ; P_NUM_DIR_ENTRIES
-	:mov #0 ; P_SCREENSAVER_BANK // no screensaver for now
+	:mov16 #[FILESYSTEM_START_ADDR - V_EFS_SIZE] : ZP_EFS_ENTRY
+	:mov16 #P_DIR : ZP_ENTRY
+	:mov #0 : P_NUM_DIR_ENTRIES
+	:mov #0 : P_SCREENSAVER_BANK // no screensaver for now
 
 big_loop:
-	:add16_8 ZP_EFS_ENTRY ; #V_EFS_SIZE
-	
+	:add16_8 ZP_EFS_ENTRY : #V_EFS_SIZE
+
 	// copy TYPE,BANK,OFFSET,SIZE to BUFFER (maybe not used...)
 	// parts of the DIR name is scrambled
 	ldy #V_EFS_SIZE - 1
@@ -41,10 +41,10 @@ big_loop:
 			lda (ZP_EFS_ENTRY), y
 			cmp screen_saver, y
 			bne !no_saver+
-			
+
 			iny
 			cpy #[screen_saver_end - screen_saver]
-			bne !loop-			
+			bne !loop-
 
 		// found screen saver!
 		ldy #$80
@@ -61,23 +61,23 @@ big_loop:
 		sta P_SCREENSAVER_BANK
 
 !no_saver:
-	
+
 	// switch by type
 	lda P_DIR_BUFFER + O_DIR_TYPE
 	bmi maybe_hidden // negative number -> bit 7 set -> hidden file
 	and #O_EFST_MASK
-	:if A ; EQ ; #O_EFST_END ; JMP ; return // $1f -> EOF
-	:if A ; EQ ; #O_EFST_FILE ; file
-	:if A ; EQ ; #O_EFST_8KCRT ; rom8
-	:if A ; EQ ; #O_EFST_16KCRT ; rom16
-	:if A ; EQ ; #O_EFST_8KULTCRT ; romu8
-	:if A ; EQ ; #O_EFST_16KULTCRT ; romu16
+	:if A : EQ : #O_EFST_END : JMP : return // $1f -> EOF
+	:if A : EQ : #O_EFST_FILE : file
+	:if A : EQ : #O_EFST_8KCRT : rom8
+	:if A : EQ : #O_EFST_16KCRT : rom16
+	:if A : EQ : #O_EFST_8KULTCRT : romu8
+	:if A : EQ : #O_EFST_16KULTCRT : romu16
 	jmp big_loop // 0 or unknown entry -> try next
 
 maybe_hidden:
 	and #O_EFST_MASK
-	:if A ; EQ ; #O_EFST_END ; JMP ; return // $1f -> EOF
-	jmp big_loop // is a hidden file	
+	:if A : EQ : #O_EFST_END : JMP : return // $1f -> EOF
+	jmp big_loop // is a hidden file
 
 rom8:
 	lda #MODE_8k // set game/exrom correctly + $20 for overwrite jumper
@@ -107,12 +107,12 @@ file:
 	jsr F_READ_LOADADDR
 
 	// check for a valid file
-	:if P_DIR_BUFFER + O_DIR_SIZE+2 ; NE ; #$00 ; not_loadable // size >64k
-	:if16 P_DIR_BUFFER + O_DIR_LOADADDR+1 ; LT ; #$01 ; not_loadable // loadaddr < $0100
-	:sub16 P_DIR_BUFFER + O_DIR_LOADADDR ; #3 ; ZP_SCAN_SIZETEXT
-	:add16 ZP_SCAN_SIZETEXT ; P_DIR_BUFFER + O_DIR_SIZE
+	:if P_DIR_BUFFER + O_DIR_SIZE+2 : NE : #$00 : not_loadable // size >64k
+	:if16 P_DIR_BUFFER + O_DIR_LOADADDR+1 : LT : #$01 : not_loadable // loadaddr < $0100
+	:sub16 P_DIR_BUFFER + O_DIR_LOADADDR : #3 : ZP_SCAN_SIZETEXT
+	:add16 ZP_SCAN_SIZETEXT : P_DIR_BUFFER + O_DIR_SIZE
 	bcs not_loadable // laodaddr+size(minus 2 for laodaddr) > $ffff (future limit)
-	:if ZP_SCAN_SIZETEXT+1 ; GE ; #$d0 ; not_loadable // >= $d000 (current limit)
+	:if ZP_SCAN_SIZETEXT+1 : GE : #$d0 : not_loadable // >= $d000 (current limit)
 
 	ldx #$7d
 	jmp copyit
@@ -137,10 +137,10 @@ copyit:
 	ldy #O_EFS_TYPE-1
 !loop:
 	lda (ZP_EFS_ENTRY), y
-	:if A ; EQ ; #$00 ; !ok+ // keep $00
-	:if A ; LT ; #$20 ; !bad+ // $01-$1f => bad
-	:if A ; EQ ; #$60 ; !bad+ // $60 => bad
-	:if NOT ; A ; GT ; #$7a ; !ok+ // $7b-$ff => bad
+	:if A : EQ : #$00 : !ok+ // keep $00
+	:if A : LT : #$20 : !bad+ // $01-$1f => bad
+	:if A : EQ : #$60 : !bad+ // $60 => bad
+	:if NOT : A : GT : #$7a : !ok+ // $7b-$ff => bad
 !bad:
 	lda #$2a // *
 !ok:
@@ -152,18 +152,18 @@ copyit:
 	sta P_DIR_BUFFER+2, y
 	dey
 	bpl !loop-
-	
+
 	// create upper petscii name
 	ldy #O_EFS_TYPE-1
 !loop:
 	lda P_DIR_BUFFER+O_DIR_UNAME, y
-	:if A ; LT ; #$61 ; !skip+
+	:if A : LT : #$61 : !skip+
 	eor #$20
 	sta P_DIR_BUFFER+O_DIR_UNAME, y
 !skip:
 	dey
 	bpl !loop-
-	
+
 	ldx #18
 	// a space
 	lda #32
@@ -173,14 +173,14 @@ copyit:
 	lda P_DIR_BUFFER + O_DIR_TYPE
 	and #$10
 	bne !at_least_xxxk+
-	:if P_DIR_BUFFER + O_DIR_SIZE+2 ; NE ; #$00 ; !at_least_64k+
-	:if16 P_DIR_BUFFER + O_DIR_SIZE ; LE ; #999 ; JMP ; show_bytes
-	:if16 P_DIR_BUFFER + O_DIR_SIZE ; LE ; #[9.9*1024] ; JMP ; show_x_x_kbytes
+	:if P_DIR_BUFFER + O_DIR_SIZE+2 : NE : #$00 : !at_least_64k+
+	:if16 P_DIR_BUFFER + O_DIR_SIZE : LE : #999 : JMP : show_bytes
+	:if16 P_DIR_BUFFER + O_DIR_SIZE : LE : #[9.9*1024] : JMP : show_x_x_kbytes
 !at_least_xxxk:
 !at_least_64k:
-	:if16 P_DIR_BUFFER + O_DIR_SIZE+1 ; LE ; #[[999*1024]>>8] ; JMP ; show_xxx_kbytes
+	:if16 P_DIR_BUFFER + O_DIR_SIZE+1 : LE : #[[999*1024]>>8] : JMP : show_xxx_kbytes
 	jmp show_x_x_mbytes
-	
+
 next_after_size:
 	// end of line
 	lda #$7f
@@ -194,9 +194,9 @@ next_after_size:
 	dey
 	bpl !loop-
 
-	
+
 	// next line
-	:add16_8 ZP_ENTRY ; #V_DIR_SIZE
+	:add16_8 ZP_ENTRY : #V_DIR_SIZE
 	inc P_NUM_DIR_ENTRIES
 	jmp big_loop
 
@@ -215,19 +215,19 @@ return:
 	// return (thru rts in precalc)
 
 show_bytes:
-	:mov16 P_DIR_BUFFER + O_DIR_SIZE ; P_BINBCD_IN
+	:mov16 P_DIR_BUFFER + O_DIR_SIZE : P_BINBCD_IN
 	lda #$62
 	jmp show_xxx
-	
+
 show_x_x_kbytes:
-	:mov16 P_DIR_BUFFER + O_DIR_SIZE ; ZP_SCAN_SIZETEXT
+	:mov16 P_DIR_BUFFER + O_DIR_SIZE : ZP_SCAN_SIZETEXT
 	:asl16 ZP_SCAN_SIZETEXT
 	:asl16 ZP_SCAN_SIZETEXT
 	lda #$4b
 	jmp show_x_x
 
 show_xxx_kbytes:
-	:mov16 P_DIR_BUFFER + O_DIR_SIZE+1 ; P_BINBCD_IN
+	:mov16 P_DIR_BUFFER + O_DIR_SIZE+1 : P_BINBCD_IN
 	:lsr16 P_BINBCD_IN
 	:lsr16 P_BINBCD_IN
 	bcc !skip+
@@ -238,7 +238,7 @@ show_xxx_kbytes:
 	jmp show_xxx
 
 show_x_x_mbytes:
-	:mov16 P_DIR_BUFFER + O_DIR_SIZE+1 ; ZP_SCAN_SIZETEXT
+	:mov16 P_DIR_BUFFER + O_DIR_SIZE+1 : ZP_SCAN_SIZETEXT
 	lda #$4d
 	jmp show_x_x
 
@@ -246,7 +246,7 @@ show_x_x_mbytes:
 
 show_x_x:
 	pha // keep unit
-	:mov ZP_SCAN_SIZETEXT+1 ; P_BINBCD_IN
+	:mov ZP_SCAN_SIZETEXT+1 : P_BINBCD_IN
 	lsr P_BINBCD_IN
 	lsr P_BINBCD_IN
 	lsr P_BINBCD_IN
@@ -274,12 +274,12 @@ show_x_x:
 	adc ZP_SCAN_SIZETEXT
 	lsr
 	jsr F_BCDIFY_LOWER_BUF
-	
+
 	// display unit
 	pla
 	sta P_DIR_BUFFER, x
 	inx
-	
+
 	jmp next_after_size
 
 show_xxx:
@@ -293,7 +293,7 @@ show_xxx:
 	jsr F_BCDIFY_LOWER_BUF
 	lda P_BINBCD_OUT+0
 	jsr F_BCDIFY_BUF
-	
+
 	// remove leading 0
 	ldy #$fe
 !loop:
@@ -305,13 +305,13 @@ show_xxx:
 	iny
 	bne !loop-
 !skip:
-	
-	
+
+
 	// display unit
 	pla
 	sta P_DIR_BUFFER, x
 	inx
-	
+
 	jmp next_after_size
 
 screen_saver:
@@ -334,7 +334,7 @@ F_READ_LOADADDR:
 }
 READ_LOADADDR_END:
 
-.if(EASYLOADER_BANK != EASYFILESYSTEM_BANK){
+//.if(EASYLOADER_BANK != EASYFILESYSTEM_BANK){
 COPY_FILESYSTEM_START:
 .pseudopc $df00 {
 F_COPY_FILESYSTEM:
@@ -358,7 +358,7 @@ smc_dst:
 	rts
 }
 COPY_FILESYSTEM_END:
-}
+//}
 
 
 

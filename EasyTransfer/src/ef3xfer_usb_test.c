@@ -29,6 +29,7 @@
 #include "ef3xfer.h"
 #include "ef3xfer_internal.h"
 
+static int run_usb_test(void);
 static int test_sequence(void);
 static int check_usb_with_value(uint8_t val);
 
@@ -60,7 +61,7 @@ int ef3xfer_usb_test(void)
 /**
  *
  */
-int run_usb_test()
+static int run_usb_test(void)
 {
     int     test_loop, success;
 

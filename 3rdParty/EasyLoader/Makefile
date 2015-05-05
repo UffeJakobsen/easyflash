@@ -6,11 +6,15 @@
 
 DEPDIR = .deps
 df = $(DEPDIR)/$(*F)
-RCFILES = 
+RCFILES =
 
-ifneq ($(strip $(wildcard ~/.EasyLoader.rc)),) 
+ifneq ($(strip $(wildcard ~/.EasyLoader.rc)),)
 include ~/.EasyLoader.rc
 RCFILES += ~/.EasyLoader.rc
+else
+ifeq ($(PACKAGE),)
+PACKAGE = tools/example.Package.rc
+endif
 endif
 
 PHP5 ?= php
@@ -30,7 +34,9 @@ B = "\\033[1m"
 all: build
 
 .PHONY: build
-build: n
+build:
+	$(MAKE) build/screen.asm
+	$(MAKE) n
 
 .PHONY: clean
 clean:
@@ -41,11 +47,9 @@ svn:
 	svn ci
 	svn up
 
-build/%.prg: %.asm
-	@echo -e "$(B)Assembling $<$(N)"
-	$(PHP5) tools/mkdep.php $< > $(df).P build/ts.txt
-	@$(PHP5) -r ' \
-		@error_reporting(0); \
+
+define php_script =
+		error_reporting(0); \
 		$$f = `LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 hg log .`; \
 		if(preg_match("/changeset:([ 0-9]+):/s", $$f, $$r)){$$v = (int) $$r[1];}else{$$v = "unk";} \
 		if(preg_match("/date:(.*? [+-][0-9]{4})/s", $$f, $$r)){$$t = time() - strtotime($$r[1]);}else{$$t = 0;} \
@@ -61,10 +65,16 @@ build/%.prg: %.asm
 				$$t = sprintf("%06d", pow(log($$t/600+1, 1.654286), 3) * 100); \
 			} \
 			echo $$s.substr($$t, 0, 13-strlen($$s)); \
-		} \
-	' > build/ts.txt
-	$(JAVA) -jar $(KICKASS) -showmem -vicesymbols -o $@ $<
-	@mv $(<:.asm=.vs) $(@:.prg=.vs)
+		}
+endef
+
+build/%.prg: %.asm
+	@echo -e "$(B)Assembling $<$(N)"
+	$(PHP5) tools/mkdep.php $< > $(df).P build/ts.txt
+	$(PHP5) -r '$(php_script)' > build/ts.txt
+	$(JAVA) -jar $(KICKASS) -showmem -vicesymbols -symbolfiledir build -symbolfile -asminfo "errors|files" -asminfofile $(@).asminfo -o $@ $<
+	#$(JAVA) -jar $(KICKASS) -showmem -vicesymbols -asminfo "files|errors" -asminfofile $(@).asminfo -o $@ $<
+	#@mv $(<:.asm=.vs) $(@:.prg=.vs)
 
 %.crt: %.prg tools/mk_easyflash_module.php $(RCFILES)
 	@echo -e "$(B)Packing a module $<$(N)"
@@ -72,7 +82,8 @@ build/%.prg: %.asm
 
 # prereq
 
-build/main.prg: graphics/petscii_lower_minimal.png build/screen.bin
+#build/main.prg: graphics/petscii_lower_minimal.png build/screen.bin
+build/main.prg: build/screen.bin
 
 build/screen.asm: build/screen.bin
 
@@ -98,4 +109,3 @@ o: build/easyloader_ocm.crt
 # autodep
 
 -include $(SRCS:%.asm=$(DEPDIR)/%.P)
-

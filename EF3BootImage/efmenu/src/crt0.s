@@ -48,6 +48,35 @@ reset:
         ; same init stuff the kernel calls after reset
         ldx #0
         stx $d016
+
+; initaliase I/O devices
+
+;		LDA #$7F
+;		STA $DC0D
+;		STA $DD0D
+;		STA $DC00
+;		LDA #$08
+;		STA $DC0E
+;		STA $DD0E
+;		STA $DC0F
+;		STA $DD0F
+;		LDX #$00
+;		STX $DC03
+;		STX $DD03
+;		STX $D418
+;		DEX
+;		STX $DC02
+;		LDA #$07
+;		STA $DD00
+;		LDA #$3F
+;		STA $DD02
+;		LDA #$E7
+;		STA $01
+;		LDA #$2F
+;		STA $00
+
+
+        ; initaliase I/O devices
         jsr $ff84   ; Initialise I/O
 
         jsr init_system_constants_light ; faster replacement for $ff87

@@ -64,7 +64,10 @@ obj:
 $(name).bin: obj/crt0.crt.o $(obj) src/ld.crt.cfg $(libef3usb)
 	ld65 -o $@ -m $@.map -C src/ld.crt.cfg obj/crt0.crt.o $(obj) \
 		--lib  $(libef3usb) \
-		-L /usr/local/lib/cc65/lib --lib c64.lib
+		-L $(LD65_LIB) --lib $(LD65_LIB)/c64.lib
+	echo "$@.map:"
+	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
+	echo "$@.map:"
 	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
 
 .PHONY: clean
@@ -73,4 +76,3 @@ clean:
 	rm -f $(obj)
 	rm -rf obj
 	-$(MAKE) -C $(dir $(libef3usb)) clean
-

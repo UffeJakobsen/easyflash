@@ -63,4 +63,5 @@ endif
 .PHONY: clean
 clean:
 	rm -f $(name) $(name).map $(name).prg
+	rm -f $(name).bin $(name).bin.map
 	rm -rf obj

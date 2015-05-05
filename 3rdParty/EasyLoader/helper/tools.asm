@@ -6,7 +6,7 @@ F_BINBCD_8BIT: {
                 sta P_BINBCD_OUT+0
                 sta P_BINBCD_OUT+1
                 ldy #8          // The number of source bits
-                
+
         CNVBIT: asl P_BINBCD_IN         // Shift out one bit
                 lda P_BINBCD_OUT+0      // And add into result
                 adc P_BINBCD_OUT+0
@@ -17,7 +17,7 @@ F_BINBCD_8BIT: {
                 dey             // And repeat for next bit
                 bne CNVBIT
                 cld             // Back to binary
-                
+
                 rts             // All Done.
 }
 
@@ -27,7 +27,7 @@ F_BINBCD_10BIT: {
                 sta P_BINBCD_OUT+0
                 sta P_BINBCD_OUT+1
                 ldy #10         // The number of source bits
-                
+
                 // drop 6 bits
                 :asl16 P_BINBCD_IN
                 :asl16 P_BINBCD_IN
@@ -35,7 +35,7 @@ F_BINBCD_10BIT: {
                 :asl16 P_BINBCD_IN
                 :asl16 P_BINBCD_IN
                 :asl16 P_BINBCD_IN
-                
+
         CNVBIT: :asl16 P_BINBCD_IN      // Shift out one bit
                 lda P_BINBCD_OUT+0      // And add into result
                 adc P_BINBCD_OUT+0
@@ -46,7 +46,7 @@ F_BINBCD_10BIT: {
                 dey             // And repeat for next bit
                 bne CNVBIT
                 cld             // Back to binary
-                
+
                 rts             // All Done.
 }
 
@@ -57,7 +57,7 @@ F_BINBCD_16BIT: {
                 sta P_BINBCD_OUT+1
                 sta P_BINBCD_OUT+2
                 ldy #16         // The number of source bits
-                
+
         CNVBIT: :asl16 P_BINBCD_IN      // Shift out one bit
                 lda P_BINBCD_OUT+0      // And add into result
                 adc P_BINBCD_OUT+0
@@ -71,7 +71,7 @@ F_BINBCD_16BIT: {
                 dey             // And repeat for next bit
                 bne CNVBIT
                 cld             // Back to binary
-                
+
                 rts             // All Done.
 }
 
@@ -151,7 +151,7 @@ F_COPY_TO_DF00:{
 	rts
 }
 
-.pseudocommand copy_to_df00 start ; len {
+.pseudocommand copy_to_df00 start : len {
 	.assert "copy_to_df00: len too big", len.getValue() <= 251, true
 	.var PTR = P_BINBCD_IN
 	lda #[start.getValue()-1] & $ff
@@ -159,4 +159,3 @@ F_COPY_TO_DF00:{
 	ldy #len.getValue()
 	jsr F_COPY_TO_DF00
 }
-

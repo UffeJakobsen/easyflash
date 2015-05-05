@@ -2,21 +2,21 @@
 ** 8bit commands
 */
 
-.pseudocommand clr dst ; hop { 
+.pseudocommand clr dst : hop {
 	.if(_isregister8(dst)){
-		:load dst ; #0
+		:_load dst : #0
 	}else{
 		.if(_isunset(hop)){
 			.eval hop = A
 		}else .if(! _isregister8(hop)){
 			.error "clr: hop is not a register"
 		}
-		:_load hop ; #0
-		:_store hop ; tar
+		:_load hop : #0
+		:_store hop : dst //tar
 	}
 }
 
-.pseudocommand mov src ; hop ; dst {
+.pseudocommand mov src : hop : dst {
 	// load src in hop (default A) and store it to dst
 	// hop is ignored when src and/or dst is a register
 	.if(_isunset(dst)){
@@ -49,20 +49,20 @@
 			}
 		}else{
 			// src = REGISTER; dst = no regsiter
-			:_store src ; dst
+			:_store src : dst
 		}
 	}else .if(_isregister8(dst)){
 		.if(! _isdefault(hop)){
 			.error "mov: if src and/or dst is a register hop must not be set"
 		}
 		// src = no regsiter; dst = REGISTER
-		:_load dst ; src
+		:_load dst : src
 	}else{
 		.if(_isdefault(hop)){
 			.eval hop = A
 		}
-		:_load hop ; src
-		:_store hop ; dst
+		:_load hop : src
+		:_store hop : dst
 	}
 }
 
@@ -92,13 +92,13 @@
 	}
 }
 
-.pseudocommand adc src1 ; src2 ; dst {
+.pseudocommand adc src1 : src2 : dst {
 	.if(! _equalregisters8(src1, A)){
 		lda src1
 	}
-		
-	adc src2 
-	
+
+	adc src2
+
 	.if(_isunset(dst)){
 		.eval dst = src1
 	}
@@ -108,18 +108,18 @@
 	}
 }
 
-.pseudocommand add src1 ; src2 ; dst { 
+.pseudocommand add src1 : src2 : dst {
 	clc
-	:adc src1 ; src2 ; dst
+	:adc src1 : src2 : dst
 }
 
-.pseudocommand sbc src1 ; src2 ; dst {
+.pseudocommand sbc src1 : src2 : dst {
 	.if(! _equalregisters8(src1, A)){
 		lda src1
 	}
-		
-	sbc src2 
-	
+
+	sbc src2
+
 	.if(_isunset(dst)){
 		.eval dst = src1
 	}
@@ -129,13 +129,13 @@
 	}
 }
 
-.pseudocommand sub src1 ; src2 ; dst { 
+.pseudocommand sub src1 : src2 : dst {
 	sec
-	:sbc src1 ; src2 ; dst
+	:sbc src1 : src2 : dst
 }
 
-.pseudocommand mul8_16 src1 ; src2 ; dst ; hop {
-		:_load hop ; #8
+.pseudocommand mul8_16 src1 : src2 : dst : hop {
+		:_load hop : #8
 		:clr16 dst
 	loop:
 		:asl16 dst
@@ -152,9 +152,9 @@
 		bne loop
 }
 
-.pseudocommand mul10 src ; tar ; buffer {
+.pseudocommand mul10 src : tar : buffer {
 	.if(!_equalregisters8(src, A)){
-		lda arg1
+		lda src   // arg1
 	}
 	.if(_isSMC(buffer)){
 		// use self-modifying code
@@ -178,7 +178,7 @@
 	}
 }
 
-.pseudocommand if not ; arg1 ; cmpr ; arg2 ; skip ; mode ; pc ; hop {
+.pseudocommand if not : arg1 : cmpr : arg2 : skip : mode : pc : hop {
 	.if(_isNOT(not)){
 		.eval not = true
 	}else{
@@ -208,7 +208,7 @@
 	}else .if(! _isregister8(hop)){
 		.error "if: hop is not a register"
 	}
-	
+
 	.if(not){
 		.if(_equalcomparators(cmpr, EQ)){
 			.eval cmpr = NE
@@ -228,21 +228,21 @@
 			.eval cmpr = Lx
 		}
 	}
-	
+
 	.if(_equalcomparators(cmpr, EQ)){
-		:_eq hop ; arg1 ; arg2 ; mode ; pc
+		:_eq hop : arg1 : arg2 : mode : pc
 	}else .if(_equalcomparators(cmpr, NE)){
-		:_ne hop ; arg1 ; arg2 ; mode ; pc
+		:_ne hop : arg1 : arg2 : mode : pc
 	}else .if(_equalcomparators(cmpr, LT) || _equalcomparators(cmpr, Lx)){
-		:_lt hop ; arg1 ; arg2 ; mode ; pc
+		:_lt hop : arg1 : arg2 : mode : pc
 	}else .if(_equalcomparators(cmpr, LE)){
-		:_le hop ; arg1 ; arg2 ; mode ; pc
+		:_le hop : arg1 : arg2 : mode : pc
 	}else .if(_equalcomparators(cmpr, GE) || _equalcomparators(cmpr, Gx)){
-		:_ge hop ; arg1 ; arg2 ; mode ; pc
+		:_ge hop : arg1 : arg2 : mode : pc
 	}else .if(_equalcomparators(cmpr, GT)){
-		:_gt hop ; arg1 ; arg2 ; mode ; pc
+		:_gt hop : arg1 : arg2 : mode : pc
 	}else{
 		.error "if: unknown comparator"
 	}
-	
+
 }

@@ -1,7 +1,7 @@
 #
 # copy this file to ~/.EasyLoader.rc
 #
-# cuncomment and change all lines which are not correct
+# uncomment and change all lines which are not correct
 #
 
 #PHP5 = /path/to/php

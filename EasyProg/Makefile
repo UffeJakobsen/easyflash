@@ -36,9 +36,10 @@ obj += obj/write.o
 obj += obj/usbtest.o
 obj += obj/util.o
 
-ld65_version := $(shell [ `ld65 -V 2>&1 | sed -e 's/\(ld65 V\)\([0-9\.]*\)\( .*\)/\2/g; q'` \< "2.13.9" ] && echo old)
+ld65_version := $(shell ld65 -V 2>&1 | head -1 | sed -n -E 's/(ld65 V)([0-9.]*).*/\2/p')
+ld65_state := $(shell test "$(ld65_version)" "=" "2.13.9" && echo old || echo new)
 
-ifeq "$(ld65_version)" "old"
+ifeq "$(ld65_state)" "old"
         ld_config := src/ld.cfg
 else
         ld_config := src/ld2.cfg
@@ -121,8 +122,9 @@ obj:
 	mkdir -p $@
 
 easyprog: $(obj) $(ld_config) $(eload) $(libprint) $(libef3usb)
-	ld65 -o $@ -m $@.map -C $(ld_config) $(obj) -L /usr/local/lib/cc65/lib \
-		--lib $(eload) --lib $(libprint) --lib $(libef3usb) --lib c64.lib
+	ld65 -o $@ -m $@.map -C $(ld_config) $(obj) -L $(LD65_LIB) \
+		--lib $(eload) --lib $(libprint) --lib $(libef3usb) --lib $(LD65_LIB)/c64.lib
+	echo "$@.map:"
 	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
 
 easyprog.prg: easyprog
@@ -156,4 +158,3 @@ clean:
 	$(MAKE) -C $(dir $(eload)) clean
 	$(MAKE) -C $(dir $(libprint)) clean
 	$(MAKE) -C $(eapi_dir) clean
-

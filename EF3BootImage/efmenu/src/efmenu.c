@@ -132,6 +132,8 @@ static efmenu_entry_t* get_current_menu_entry(void)
 }
 
 
+static char hexdig[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
 /******************************************************************************/
 /**
  * Set n_current_menu/n_current_entry to the previous menu entry
@@ -316,7 +318,27 @@ static void show_menu(uint8_t n_page, uint8_t full_update)
     efmenu_t* menu;
     efmenu_entry_t* entry;
 
+#ifdef EF_MENU_CHAR_BASED
+    VIC.bgcolor0 = COLOR_BLUE;
+    memset(COLOR_RAM, 0x01, 1000);
+    memset(P_GFX_COLOR, 0x20, 1000);
+#else
+    // copy bitmap at $A000 from ROM to RAM => VIC can see it
+    // copy colors to $8400
+    memcpy(P_GFX_BITMAP, bitmap, 8000);
+    memcpy(P_GFX_COLOR, colmap, 1000);
+#endif
+
     if (full_update)
+
+
+
+#ifdef EF_MENU_CHAR_BASED
+#else
+    memset(P_GFX_COLOR + 24 * 40, COLOR_GRAY1 << 4 | COLOR_LIGHTBLUE, 4);
+    memset(P_GFX_BITMAP + 8 * (24 * 40), 0, 4 * 8);
+#endif
+
     {
         erase_text_areas(COLOR_GRAY2 << 4 | COLOR_GRAY3);
         fill_directory();
@@ -339,11 +361,23 @@ static void show_menu(uint8_t n_page, uint8_t full_update)
                 }
 
                 if (entry == get_current_menu_entry())
-                    color = COLOR_BLACK << 4 | COLOR_YELLOW;
+#ifdef EF_MENU_CHAR_BASED
+                   color = COLOR_BLACK << 4;
+#else
+                   color = COLOR_GRAY1 << 4;
+#endif
                 else if (menu_entry_is_valid(entry))
+#ifdef EF_MENU_CHAR_BASED
                     color = COLOR_BLACK << 4 | COLOR_GRAY3;
-                else
-                    color = COLOR_GRAY2 << 4 | COLOR_GRAY3;
+#else
+                    color = COLOR_GRAY1 << 4 | COLOR_GRAY3;
+#endif
+               else
+#ifdef EF_MENU_CHAR_BASED
+                   color = COLOR_GRAY2;
+#else
+                   color = COLOR_GRAY2 << 4 | COLOR_GRAY3;
+#endif
                 text_set_line_color(menu->x_pos, y, color);
 
                 ++y;
@@ -462,6 +496,14 @@ static void show_version(void)
     static char str_version[6];
     uint8_t vcode = EF3_CPLD_VERSION;
 
+#ifdef EF_MENU_CHAR_BASED
+    VIC.bgcolor0 = COLOR_GREEN;
+    memset(COLOR_RAM, 0x01, 1000);
+    memset(P_GFX_COLOR, 0x20, 1000);
+#else
+    memset(P_GFX_BITMAP, 0, 8000);
+    memset(P_GFX_COLOR, (COLOR_GRAY3 << 4) | COLOR_BLUE, 1000);
+#endif
     erase_text_areas(COLOR_BLACK << 4 | COLOR_GRAY3);
     x = all_menus[0].x_pos + 1;
     y = all_menus[0].y_pos + 1;
@@ -524,9 +566,25 @@ static void main_loop(void)
     {
         update = full_update = 0;
         n_old_page = n_current_page;
+
+#ifdef EF_MENU_NO_KERNAL
+        key = get_key();
+#else
         if (kbhit())
         {
-            key = cgetc();
+          key = cgetc();
+        } else {
+          key = 0xff;
+        }
+#endif
+
+#ifdef EF_MENU_NO_KERNAL
+    *(uint8_t*)(0x0400+(0*40)+0) = key>=0x40?(key-0x40):key;
+    *(uint8_t*)(0x0400+(0*40)+2) = hexdig[(key >> 4) & 0x0f];
+    *(uint8_t*)(0x0400+(0*40)+3) = hexdig[(key) & 0x0f];
+#endif
+
+        if (key != 0xff) {
             switch (key)
             {
             case CH_CURS_UP:
@@ -643,18 +701,35 @@ static void fill_directory(void)
  */
 static void init_screen(void)
 {
+#ifdef EF_MENU_NO_KERNAL
+    VIC.ctrl2 = 0x08;
+#else
+    VIC.ctrl2 = 0x08;
+#endif
+
     VIC.bordercolor = COLOR_BLUE;
 
     /* set VIC base address to $4000 */
+#ifdef EF_MENU_CHAR_BASED
+    CIA2.pra = 0x14 + 3;
+#else
     CIA2.pra = 0x14 + 2;
+#endif
     CIA2.ddra = 0x3f;
 
+#ifdef EF_MENU_CHAR_BASED
+    VIC.addr = 0x16;
+#else
     /* video offset $1c00, bitmap offset = $2000 */
     VIC.addr = 0x78;
+#endif
 
+#ifdef EF_MENU_CHAR_BASED
+    VIC.ctrl1 = 0x9b;
+#else
     /* Bitmap mode */
     VIC.ctrl1 = 0xbb;
-
+#endif
     // copy bitmap at $A000 from ROM to RAM => VIC can see it
     // copy colors to $8400
     memcpy(P_GFX_BITMAP, bitmap, 8000);

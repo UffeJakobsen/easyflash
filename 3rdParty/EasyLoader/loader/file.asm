@@ -15,7 +15,7 @@ F_LAUNCH_FILE:{
 
 	jsr F_RESET_GRAPHICS
 
-	:copy_to_df00 FILE_EXT1_START ; FILE_EXT1_END - FILE_EXT1_START
+	:copy_to_df00 FILE_EXT1_START : FILE_EXT1_END - FILE_EXT1_START
 
 	// copy bank,offset,size,loadaddr,name (part 1)
 	ldy #O_DIR_BANK
@@ -25,10 +25,10 @@ F_LAUNCH_FILE:{
 	iny
 	cpy #V_DIR_SIZE
 	bne !loop-
-	
+
 	// create interger of loadaddr
 	// convert bin->bcd
-	:mov16 P_BOSLN-O_DIR_BANK + O_DIR_LOADADDR ; P_BINBCD_IN
+	:mov16 P_BOSLN-O_DIR_BANK + O_DIR_LOADADDR : P_BINBCD_IN
 	jsr F_BINBCD_16BIT
 	// convert bcd->petscii
 	ldx #$00
@@ -44,7 +44,7 @@ F_LAUNCH_FILE:{
 	lda P_BUFFER,x
 	cmp #$30
 	bne !skip+
-	:mov #$20 ; P_BUFFER,x
+	:mov #$20 : P_BUFFER,x
 	inx
 	cpy #4
 	bne !loop-
@@ -56,11 +56,11 @@ F_LAUNCH_FILE:{
 	sta P_SYS_NUMBERS,x
 	dex
 	bpl !loop-
-	
+
 	/*
 	** DO A PARTIAL RESET (EVERYTHING EXCEPT I/O IS LOST)
 	*/
-	
+
 	jmp DO_PARTIAL_RESET
 BACK_FROM_PARTIAL_RESET:
 
@@ -75,28 +75,28 @@ BACK_FROM_PARTIAL_RESET:
 	sta SMC_RESTORE_UPPER+1
 
 	// add our vector
-	:mov16 #RESET_TRAP ; $324
+	:mov16 #RESET_TRAP : $324
 
 	/*
 	** DETECT A C64GS KERNAL, IF SO CREATE A SECOND TRAP (CHROUT VECTOR)
 	*/
-	
-	:if16 $e449 ; EQ ; #$f72e ; ENDIF ; !endif+
+
+	:if16 $e449 : EQ : #$f72e : ENDIF : !endif+
 		lda $326
 		sta SMC_RESTORE_CHROUT_LOWER+1
 		lda $327
 		sta SMC_RESTORE_CHROUT_UPPER+1
-		
-		:mov16 #CHROUT_TRAP ; $326
+
+		:mov16 #CHROUT_TRAP : $326
 	!endif:
-	
+
 	/*
 	** DO THE REST OF THE RESET
 	*/
 
 	// continue reset-routine
 	jmp GO_RESET
-	
+
 	/*
 	** BACK IN CARTRIDGE
 	*/
@@ -137,29 +137,29 @@ FILE_COPIER:
 	.const ZP_DST = $ae // $af
 
 	// copy bank
-	:mov P_BOSLN-O_DIR_BANK + O_DIR_BANK ; ZP_BANK
-	
-	// copy size-2 
-	:sub16 P_BOSLN-O_DIR_BANK + O_DIR_SIZE ; #2 ; ZP_SIZE
+	:mov P_BOSLN-O_DIR_BANK + O_DIR_BANK : ZP_BANK
+
+	// copy size-2
+	:sub16 P_BOSLN-O_DIR_BANK + O_DIR_SIZE : #2 : ZP_SIZE
 	// (dont load the laod address)
-	
+
 	// copy offset whithin first bank
-	:add16 P_BOSLN-O_DIR_BANK + O_DIR_OFFSET ; #2 ; ZP_SRC
+	:add16 P_BOSLN-O_DIR_BANK + O_DIR_OFFSET : #2 : ZP_SRC
 	// add 2 (don't load the loadaddress)
 
 	// if the offset is now >= $4000 switch to next bank
-	:if ZP_SRC+1 ; EQ ; #$40 ; ENDIF ; !endif+
+	:if ZP_SRC+1 : EQ : #$40 : ENDIF : !endif+
 		lda #$00
 		sta ZP_SRC+1
 		inc ZP_BANK
 	!endif:
 	// make offset ($0000-$3fff) to point into real address ($8000-$bfff)
-	:add ZP_SRC+1 ; #$80
-	
-	// copy dst address
-	:mov16 P_BOSLN-O_DIR_BANK + O_DIR_LOADADDR ; ZP_DST
+	:add ZP_SRC+1 : #$80
 
-	:if16 ZP_DST ; LE ; #$0801 ; ELSE ; !else+
+	// copy dst address
+	:mov16 P_BOSLN-O_DIR_BANK + O_DIR_LOADADDR : ZP_DST
+
+	:if16 ZP_DST : LE : #$0801 : ELSE : !else+
 		// LOAD ADDR $200-$0801 -> run
 		lda #$52
 		sta $277
@@ -179,7 +179,7 @@ FILE_COPIER:
 		sta $278
 		lda #$53
 		sta $279
-		
+
 		ldx #4
 	!loop:
 		lda P_SYS_NUMBERS, x
@@ -188,19 +188,19 @@ FILE_COPIER:
 		bpl !loop-
 		lda #$08
 		sta $c6
-	
+
 	!endif:
 
 
 	// update size (for faked start < 0)
-	:add16_8 ZP_SIZE ; ZP_SRC
-	
-	// lower source -> y ; copy always block-wise
-	:sub16_8 ZP_DST ; ZP_SRC
+	:add16_8 ZP_SIZE : ZP_SRC
+
+	// lower source -> y : copy always block-wise
+	:sub16_8 ZP_DST : ZP_SRC
 	ldy ZP_SRC
-	:mov #0 ; ZP_SRC
-	
-	:if ZP_SIZE+1 ; NE ; #$00 ; JMP ; COPY_FILE
+	:mov #0 : ZP_SRC
+
+	:if ZP_SIZE+1 : NE : #$00 : JMP : COPY_FILE
 	sty smc_limit+1
 	jmp COPY_FILE_LESS_THEN_ONE_PAGE
 
@@ -230,7 +230,7 @@ loading_2_end:
 			PARTIAL RESET
 		*/
 
-		// disable rom 
+		// disable rom
 		lda #MODE_RAM
 		sta IO_MODE
 
@@ -244,18 +244,18 @@ loading_2_end:
 		jsr $fd15
 		jsr $ff5b
 
-		// enable rom 
+		// enable rom
 		lda #MODE_16k
 		sta IO_MODE
-		
+
 		jmp BACK_FROM_PARTIAL_RESET
-	
+
 		/*
 			RESET, PART 2
 		*/
 
 	GO_RESET:
-		:mov #MODE_RAM ; IO_MODE
+		:mov #MODE_RAM : IO_MODE
 		jmp $fcfe
 
 	/*
@@ -264,20 +264,20 @@ loading_2_end:
 	**		SET $302 VECTOR TO BASIC (INSTEAD OF ANIMATION LOOP)
 	**		REQUIRES 27 BYTES OF RAM
 	*/
-	
+
 	CHROUT_TRAP:
 		sei
 		pha
-		
+
 	SMC_RESTORE_CHROUT_LOWER:
 		lda #$00
 		sta $326
 	SMC_RESTORE_CHROUT_UPPER:
 		lda #$00
 		sta $327
-		
-		:mov16 #$a483 ; $0302
-		
+
+		:mov16 #$a483 : $0302
+
 		pla
 		cli
 		jmp ($326)
@@ -304,11 +304,11 @@ loading_2_end:
 	SMC_RESTORE_UPPER:
 		lda #$00
 		sta $325
-	
+
 		// activate easyloader programm
 		lda #MODE_16k
 		sta IO_MODE
-		
+
 		// jump back to program
 		jmp FILE_COPIER
 	// DATA
@@ -316,13 +316,13 @@ loading_2_end:
 		.fill 25, 0
 	P_SYS_NUMBERS:
 		.fill 5, 0
-		
+
 	/*
 		fo the file-copy
 	*/
-		
+
 	add_bank:
-		:mov #$80 ; ZP_SRC+1
+		:mov #$80 : ZP_SRC+1
 		inc ZP_BANK
 	COPY_FILE:
 		lda ZP_BANK
@@ -336,12 +336,12 @@ loading_2_end:
 		inc ZP_SRC+1
 		dec ZP_SIZE+1
 		beq !skip+
-		:if ZP_SRC+1 ; EQ ; #$c0 ; add_bank
+		:if ZP_SRC+1 : EQ : #$c0 : add_bank
 		jmp !loop-
-		
+
 	!skip:
-		:if ZP_SRC+1 ; EQ ; #$c0 ; ENDIF ; !endif+
-			:mov #$80 ; ZP_SRC+1
+		:if ZP_SRC+1 : EQ : #$c0 : ENDIF : !endif+
+			:mov #$80 : ZP_SRC+1
 			inc ZP_BANK
 	COPY_FILE_LESS_THEN_ONE_PAGE:
 			lda ZP_BANK
@@ -360,29 +360,29 @@ loading_2_end:
 	!skip:
 
 		// setup end of program
-		:mov16 #$0801 ; $2b
-		:add16_8 ZP_DST ; ZP_SIZE ; $2d
-		:mov16 $2d ; $2f
-		:mov16 $2d ; $31
-		:mov16 $2d ; $ae
+		:mov16 #$0801 : $2b
+		:add16_8 ZP_DST : ZP_SIZE : $2d
+		:mov16 $2d : $2f
+		:mov16 $2d : $31
+		:mov16 $2d : $ae
 
 	/*
 	** DISABLE CART, RESTORE REGS, JUMP TO THE REAL CHRIN
 	*/
 
 		// disable cart
-		:mov #MODE_RAM ; IO_MODE
-		
+		:mov #MODE_RAM : IO_MODE
+
 		// write $08 in $ba (last used drive)
-		:mov #$08 ; $ba
-		
+		:mov #$08 : $ba
+
 		// restore A,X,Y
 		pla
 		tay
 		pla
 		tax
 		pla
-		
+
 		cli
 		jmp ($324)
 

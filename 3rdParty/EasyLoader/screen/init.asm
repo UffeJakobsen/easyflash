@@ -5,9 +5,9 @@ F_INIT_SCREEN:{
 	.var SRC = P_BINBCD_IN
 	.var DST = P_BINBCD_OUT
 	.var count = P_BINBCD_OUT+2
-	
-	:mov16 #screen_to_decode ; SRC
-	:mov16 #start_screen_decode ; DST
+
+	:mov16 #screen_to_decode : SRC
+	:mov16 #start_screen_decode : DST
 
 big_loop:
 	ldy #0
@@ -43,7 +43,7 @@ big_loop:
 !skip:
 	//
 	jmp big_loop
-	
+
 copy:
 	sta count // remember how often to copy
 	iny

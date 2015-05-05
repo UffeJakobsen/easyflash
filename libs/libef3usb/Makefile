@@ -3,7 +3,7 @@ libname := libef3usb
 
 inc := src/ef3usb_macros.s
 
-obj := 
+obj :=
 obj += obj/ef3usb_check_cmd.o
 obj += obj/ef3usb_discard_rx.o
 obj += obj/ef3usb_send_data.o

@@ -21,6 +21,7 @@
  * Thomas Giesel skoe@directbox.com
  */
 
+#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -87,5 +88,3 @@ void ef3xfer_log_progress(int percent, int b_gui_only)
 {
     log_progress(percent, b_gui_only);
 }
-
-
