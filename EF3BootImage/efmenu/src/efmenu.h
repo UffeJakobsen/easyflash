@@ -38,6 +38,7 @@ void __fastcall__ set_bank(uint8_t bank);
 void __fastcall__ set_bank_change_mode(uint8_t bank, uint8_t mode);
 void __fastcall__ start_program(uint8_t bank);
 
+uint8_t get_key(void);
 void wait_for_no_key(void);
 uint8_t is_c128(void);
 uint8_t shift_pressed(void);

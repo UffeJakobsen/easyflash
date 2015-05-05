@@ -47,9 +47,15 @@ void __fastcall__ text_plot_puts(
         uint8_t x_pos, uint8_t x_offset, uint8_t y_pos,
         const char* str)
 {
+#ifdef EF_MENU_CHAR_BASED
+    if (str != NULL && strlen(str)) {
+      memcpy((P_GFX_COLOR + (y_pos*40) + x_pos), str, strlen(str));
+    }
+#else
     text_plot_x = 8 * x_pos + x_offset;
     text_plot_addr = P_GFX_BITMAP + y_pos * 320 + x_pos * 8;
     text_plot_str(str);
+#endif
 }
 
 /******************************************************************************/
@@ -59,7 +65,12 @@ void __fastcall__ text_plot_puts(
 void __fastcall__ text_set_line_color(
         uint8_t x_pos, uint8_t y_pos, uint8_t color)
 {
+#ifdef EF_MENU_CHAR_BASED
+    text_plot_addr = COLOR_RAM + y_pos * 40 + x_pos;
+    text_fill_line_color((20 << 8) | color);
+#else
     text_plot_addr = P_GFX_COLOR + y_pos * 40 + x_pos;
     text_fill_line_color((16 << 8) | color);
+#endif
 }
 
