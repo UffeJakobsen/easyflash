@@ -380,13 +380,15 @@ enterLoop:
 		}
 		done:
 	}else{
+			.var pos
+			.var neg 
 	
 		.if(_equalcomparators(cmpr, LT) || _equalcomparators(cmpr, LE) || _equalcomparators(cmpr, Lx)){
-			.var pos = LT
-			.var neg = GT
+			.eval pos = LT
+			.eval neg = GT
 		}else .if(_equalcomparators(cmpr, GT) || _equalcomparators(cmpr, GE) || _equalcomparators(cmpr, Gx)){
-			.var pos = GT
-			.var neg = LT
+			.eval pos = GT
+			.eval neg = LT
 		}else{
 			.error "if16: unknown comparator"
 		}
