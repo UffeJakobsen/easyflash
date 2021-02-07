@@ -12,3 +12,7 @@ sub-projects are located at https://gitlab.com/easyflash/.
 
 A mirror of these repositories can be found at
 https://github.com/easyflash-mirror/.
+
+## Website
+
+https://skoe.de/easyflash
