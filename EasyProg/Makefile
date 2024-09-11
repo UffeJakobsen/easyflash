@@ -121,8 +121,9 @@ obj:
 	mkdir -p $@
 
 easyprog: $(obj) $(ld_config) $(eload) $(libprint) $(libef3usb)
-	ld65 -o $@ -m $@.map -C $(ld_config) $(obj) -L /usr/local/lib/cc65/lib \
-		--lib $(eload) --lib $(libprint) --lib $(libef3usb) --lib c64.lib
+	ld65 -o $@ -m $@.map -C $(ld_config) $(obj) -L $(LD65_LIB) \
+		--lib $(eload) --lib $(libprint) --lib $(libef3usb) --lib $(LD65_LIB)/c64.lib
+	echo "$@.map:"
 	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
 
 easyprog.prg: easyprog

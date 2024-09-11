@@ -12,6 +12,7 @@ obj += obj/ef3usb_fread.o
 obj += obj/ef3usb_fload.o
 obj += obj/ef3usb_fclose.o
 
+
 .PHONY: all
 all: $(libname).lib
 

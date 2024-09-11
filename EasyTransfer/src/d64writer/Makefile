@@ -63,6 +63,11 @@ $(name).prg: obj/crt0.o $(obj) src/ld.cfg $(libef3usb) $(libeload)
 	ld65 -o $@ -m $@.map -C src/ld.cfg obj/crt0.o $(obj) \
 		--lib  $(libef3usb) $(libeload) \
 		-L /usr/local/lib/cc65/lib --lib c64.lib
+	echo "$@.map:"
+	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
+
+$(name).prg: obj/crt0.prg.o $(obj) src/ld.prg.cfg $(libef3usb) $(libeload)
+	echo "$@.map:"
 	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
 
 .PHONY: clean

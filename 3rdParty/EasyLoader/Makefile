@@ -44,25 +44,25 @@ svn:
 build/%.prg: %.asm
 	@echo -e "$(B)Assembling $<$(N)"
 	$(PHP5) tools/mkdep.php $< > $(df).P build/ts.txt
-	@$(PHP5) -r ' \
-		@error_reporting(0); \
-		$$f = `LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 hg log .`; \
-		if(preg_match("/changeset:([ 0-9]+):/s", $$f, $$r)){$$v = (int) $$r[1];}else{$$v = "unk";} \
-		if(preg_match("/date:(.*? [+-][0-9]{4})/s", $$f, $$r)){$$t = time() - strtotime($$r[1]);}else{$$t = 0;} \
-		if(`hg status -q .` == ""){ \
-			$$s = "-".$$v; \
-			echo str_pad(substr(strtoupper("$(LOGUSER)"), 0, 13-strlen($$s)).$$s, 13, chr(0x82), STR_PAD_LEFT); \
-		}else{ \
-			$$s = str_pad(strtoupper(substr("$(LOGUSER)", 0, 4)), 4, chr(0x82), STR_PAD_LEFT)."-"; \
-			$$s .= $$v."."; \
-			if($$t >= 356*86400){ \
-				$$t = number_format($$t / (356*96400), 4, "Y", ""); \
-			}else{ \
-				$$t = sprintf("%06d", pow(log($$t/600+1, 1.654286), 3) * 100); \
-			} \
-			echo $$s.substr($$t, 0, 13-strlen($$s)); \
-		} \
-	' > build/ts.txt
+	#$(PHP5) -r ' \
+		#@error_reporting(0); \
+		#$$f = `LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 hg log .`; \
+		#if(preg_match("/changeset:([ 0-9]+):/s", $$f, $$r)){$$v = (int) $$r[1];}else{$$v = "unk";} \
+		#if(preg_match("/date:(.*? [+-][0-9]{4})/s", $$f, $$r)){$$t = time() - strtotime($$r[1]);}else{$$t = 0;} \
+		#if(`hg status -q .` == ""){ \
+			#$$s = "-".$$v; \
+			#echo str_pad(substr(strtoupper("$(LOGUSER)"), 0, 13-strlen($$s)).$$s, 13, chr(0x82), STR_PAD_LEFT); \
+		#}else{ \
+			#$$s = str_pad(strtoupper(substr("$(LOGUSER)", 0, 4)), 4, chr(0x82), STR_PAD_LEFT)."-"; \
+			#$$s .= $$v."."; \
+			#if($$t >= 356*86400){ \
+				#$$t = number_format($$t / (356*96400), 4, "Y", ""); \
+			#}else{ \
+				#$$t = sprintf("%06d", pow(log($$t/600+1, 1.654286), 3) * 100); \
+			#} \
+			#echo $$s.substr($$t, 0, 13-strlen($$s)); \
+		#} \
+	#' > build/ts.txt
 	$(JAVA) -jar $(KICKASS) -showmem -vicesymbols -o $@ $<
 	@mv $(<:.asm=.vs) $(@:.prg=.vs)
 

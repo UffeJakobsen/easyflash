@@ -245,6 +245,124 @@ wfnk:
         cli
         rts
 
+; =============================================================================
+;
+; uint8_t
+;
+; in:
+;       -
+; out:
+;       -
+;
+
+.export _get_key
+_get_key:
+        ; Prepare the CIA to scan the keyboard
+        sei
+        ldx #$ff
+        stx $dc02       ; DDRA $ff = output
+        inx
+        stx $dc03       ; DDRB $00 = input
+sfr:
+        lda #$00
+        sta $dc00       ; Port A: pull down all rows
+wfk:
+        lda $dc01
+        cmp #$ff        ; is a key pressed?
+        beq ok
+
+        ldx #$00
+sfc1:   lda bitmap_inv,x
+        sta $dc00
+        ldy $dc01
+        cpy #$ff
+        bne sfc2
+        inx
+        cpx #$08
+        bne sfc1
+        beq nok
+
+sfc2:
+        txa
+        asl
+        asl
+        asl
+        tax
+
+        tya
+        eor #$ff
+shr1:
+        cmp #$00
+        beq nok
+        inx
+        lsr
+        bcc shr1
+
+        dex
+        lda keytab_unshifted,x
+        cmp #$01        ; continue if we found left shift
+        beq nxt1
+        cmp #$02        ; continue if we found right shift
+        beq nxt1
+        jmp ok
+
+nxt1:   inx
+        jmp shr1
+
+nok:    lda #$ff
+ok:     cli
+        rts
+
+;bitmap:
+;        .byte $01, $02, $04, $08, $10, $20, $40, $80
+
+bitmap_inv:
+        .byte $ff-1, $ff-2, $ff-4, $ff-8, $ff-16, $ff-32, $ff-64, $ff-128
+
+tax
+lsr
+lsr
+lsr
+lsr
+and #$0f
+cmp #$0a
+cmp *+3
+clc
+adc #$07
+clc
+adc #$30
+sta $0400+40+0
+txa
+and #$0f
+cmp *+3
+clc
+adc #$07
+clc
+adc #$30
+sta $0400+40+1
+rts
+
+
+keytab_unshifted:
+	.byte $14,$0D,$1D,$88,$85,$86,$87,$11 ; row 0
+	.byte $33,$57,$41,$34,$5A,$53,$45,$01 ; row 1
+	.byte $35,$52,$44,$36,$43,$46,$54,$58 ; row 2
+	.byte $37,$59,$47,$38,$42,$48,$55,$56 ; row 3
+	.byte $39,$49,$4A,$30,$4D,$4B,$4F,$4E ; row 4
+	.byte $2B,$50,$4C,$2D,$2E,$3A,$40,$2C ; row 5
+	.byte $5C,$2A,$3B,$13,$02,$3D,$5E,$2F ; row 6
+	.byte $31,$5F,$05,$32,$20,$03,$51,$04 ; row 7
+
+keytab_shifted:
+	.byte $94,$8D,$9D,$8C,$89,$8A,$8B,$91
+	.byte $23,$D7,$C1,$24,$DA,$D3,$C5,$01
+	.byte $25,$D2,$C4,$26,$C3,$C6,$D4,$D8
+	.byte $27,$D9,$C7,$28,$C2,$C8,$D5,$D6
+	.byte $29,$C9,$CA,$30,$CD,$CB,$CF,$CE
+	.byte $DB,$D0,$CC,$DD,$3E,$5B,$BA,$3C
+	.byte $A9,$C0,$5D,$93,$01,$3D,$DE,$3F
+	.byte $21,$5F,$04,$22,$A0,$02,$D1,$83
+
 
 ; =============================================================================
 ;

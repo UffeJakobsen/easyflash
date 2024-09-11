@@ -6,7 +6,7 @@ name := efmenu
 
 version := none
 
-ld65_version := $(shell [ `ld65 -V 2>&1 | sed -e 's/\(ld65 V\)\([0-9\.]*\)\( .*\)/\2/g; q'` \< "2.13.9" ] && echo old)
+ld65_version := $(shell test `ld65 -V 2>&1 | sed -e 's/\(ld65 V\)\([0-9\.]*\)\( .*\)/\2/g; q'` \< "2.13.9" && echo old)
 
 ifeq "$(ld65_version)" "old"
         ld_config := src/ld.cfg
@@ -84,7 +84,8 @@ obj:
 $(name).bin: $(obj) $(ld_config) $(libef3usb)
 	ld65 -o $@ -m $@.map -Ln $@.labels -C $(ld_config) $(obj) \
 		--lib $(libef3usb) \
-		-L /usr/local/lib/cc65/lib --lib c64.lib
+		--lib $(LD65_LIB)/c64.lib
+	echo "$@.map:"
 	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA\|^LOWCODE"
 
 .PHONY: clean

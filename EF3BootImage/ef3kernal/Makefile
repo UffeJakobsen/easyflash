@@ -29,7 +29,8 @@ obj_b1 += obj/usbrx_asm.o
 out/ef3kernal_b1.bin: $(obj_b1) $(libef3usb) src/ld.kernal.cfg
 	ld65 -o $@ -m $@.map -C src/ld.kernal.cfg $(obj_b1) \
 		--lib $(libef3usb) \
-		-L /usr/local/lib/cc65/lib  --lib c64.lib
+		-L $(LD65_LIB) --lib $(LD65_LIB)/c64.lib
+	echo "$@.map:"
 	cat $@.map | grep -e "^Name\|^CODE\|^DATA\|^BSS\|^RODATA"
 
 ###############################################################################
